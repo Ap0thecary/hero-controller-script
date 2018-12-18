@@ -32,8 +32,6 @@ public class HeroController : MonoBehaviour
     public KeyCode strafeRight = KeyCode.E;
 
     public float jumpHeightMax = 1f;
-    private int camSynced = 1;
-    private int camUnsynced = 0;
 
     //Control Vars
     private float cameraYaw;
@@ -46,7 +44,8 @@ public class HeroController : MonoBehaviour
         rbPhysics = GetComponent<Rigidbody>();
     }
 
-    void Update()
+    void FixedUpdate()
+    //Use FixedUpdate to prevent object translation from being out of sync with physics frames
     {
         motor = Vector3.zero;
 
@@ -76,11 +75,29 @@ public class HeroController : MonoBehaviour
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
         if (Input.GetKeyDown(jump) && isGrounded == true)
         {
+            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held
+            //This of course excludes modes of movement that differ from this norm, such as gliding with space held
+
+            //Jumping in RPGs seems to be partially dependent on the length of time space is held down, up to a limit.
+
             //Add lift & velocity
             //Get the position you would jump to
             //Vector3 relativePosition = rbPhysics.velocity;
             //rbPhysics.MovePosition(relativePosition);
             //Alternatively, add motion to a certain maximum
         }
+        /*LEGACY:
+         * if(rmb down)
+         * {
+         *  lock cursor
+         *  rotate view
+         *  rotate character to face view
+         * }
+         * if(lmb down)
+         * {
+         *  lock cursor
+         *  rotate only the view 
+         * }
+         */
     }
 }
