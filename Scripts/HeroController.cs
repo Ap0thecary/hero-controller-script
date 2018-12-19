@@ -6,19 +6,20 @@ public class HeroController : MonoBehaviour
 {
     Camera heroCamera;
     Rigidbody rbPhysics;
+    CapsuleCollider col;
     public bool isThirdPerson = false;
 
 //Movement Stats
 
     public float walkSpeed = 5f;
     public float runSpeed = 10f;
-    public float jumpStrength = 1f;
     public bool isRunning = false;
     public bool isFlying = false;
     public bool isGrounded = true;
 
 //Control Mappings
 
+//May be migrated to a separate script at a later date
     public KeyCode forward = KeyCode.W;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
@@ -26,6 +27,9 @@ public class HeroController : MonoBehaviour
     public KeyCode run = KeyCode.LeftShift;
 
     public KeyCode jump = KeyCode.Space;
+    public float jumpStrength = 1f;
+    public float legacyMaxJump = 1f;
+
     public bool strafeEnabled = false;
 
     public KeyCode strafeLeft = KeyCode.Q;
@@ -42,8 +46,15 @@ public class HeroController : MonoBehaviour
     {
         heroCamera = GetComponentInChildren<Camera>();
         rbPhysics = GetComponent<Rigidbody>();
+        col = GetComponent<CapsuleCollider>();
     }
+    private void OnCollisionEnter(Collision groundCheck)
+    {
+        //Use to reset isGrounded to true
 
+        //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
+        //should be reset. Otherwise, the surface is "too steep" and cannot be jumped from.
+    }
     void FixedUpdate()
     //Use FixedUpdate to prevent object translation from being out of sync with physics frames
     {
@@ -75,16 +86,18 @@ public class HeroController : MonoBehaviour
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
         if (Input.GetKeyDown(jump) && isGrounded == true)
         {
-            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held
-            //This of course excludes modes of movement that differ from this norm, such as gliding with space held
-
+            isGrounded = false;
+            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held.
+            //This of course excludes modes of movement that differ from this norm, such as gliding with space held.
             //Jumping in RPGs seems to be partially dependent on the length of time space is held down, up to a limit.
 
-            //Add lift & velocity
-            //Get the position you would jump to
-            //Vector3 relativePosition = rbPhysics.velocity;
-            //rbPhysics.MovePosition(relativePosition);
-            //Alternatively, add motion to a certain maximum
+            rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
+            //Impulse based movement is used to create a consistant jump height generally expected of an FPS character.
+
+            //Legacy jump will increase increase the y value of the motor vector until
+            //a difference in position equal to the max height is reached, or until the
+            //jump hotkey is released.
+            
         }
         /*LEGACY:
          * if(rmb down)

@@ -59,11 +59,13 @@ public class HeroCamera : MonoBehaviour
             }
             pitch = Mathf.Clamp(pitch, -180, 180);
             heroCamera.transform.Rotate(Vector3.up,yaw);
+            //Probably wrong, investigating Quaternion.slerp
             heroCamera.transform.Rotate(Vector3.right, pitch);
         }
         if (isLegacy)
         {
             //That legacy shite
+            //Will require that camera and player interact more frequently
         }
     }
 
