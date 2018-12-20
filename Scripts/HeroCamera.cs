@@ -49,17 +49,19 @@ public class HeroCamera : MonoBehaviour
         if (isThirdPerson == false)
         {
             heroCamera.transform.rotation = Quaternion.Euler(new Vector3(-pitch, yaw, 0) * sensitivity);
+            //Magic. Absolute magic.
         }
         if (isThirdPerson == true)
         {
             if (Input.GetAxis("Mouse ScrollWheel") != 0f)
             {
+                //Make sure you're within a reasonable distance to the player
                 thirdPersonDistance = Mathf.Clamp(thirdPersonDistance + zoomDistance, tpMinDistance, tpMaxDistance);
                 transform.position = parentPosition - new Vector3(thirdPersonDistance, 0, 0);
             }
             pitch = Mathf.Clamp(pitch, -180, 180);
             heroCamera.transform.Rotate(Vector3.up,yaw);
-            //Probably wrong, investigating Quaternion.slerp
+            //Eldritch magicks are required here that I have yet to understand
             heroCamera.transform.Rotate(Vector3.right, pitch);
         }
         if (isLegacy)

@@ -37,13 +37,21 @@ public class HeroController : MonoBehaviour
 
     public float jumpHeightMax = 1f;
 
+    //I AM GONNA PUT A WALL JUMPING FEATURE IN
+    //AND NOBODY CAN TELL ME OTHERWISE
+    //GO AHEAD TRY TO STOP ME
+    //YOU CANNOT BECAUSE I AM SLIPPERY AND COVERED IN JAM
+    public bool canWallJump = false;
+    public float hangTime = 5f;
+    //Also an angle threshold or something?
+
     //Control Vars
     private float cameraYaw;
     private Vector3 motor;
 
-    Vector3 forwardDir;
     void Start()
     {
+        //get all the stuff I need to operate on
         heroCamera = GetComponentInChildren<Camera>();
         rbPhysics = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
@@ -55,21 +63,35 @@ public class HeroController : MonoBehaviour
         //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
         //should be reset. Otherwise, the surface is "too steep" and cannot be jumped from.
     }
+    void Update()
+    {
+        if (Input.GetKeyDown(jump) && isGrounded == true)
+        { 
+            //isGrounded = false;
+
+            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held.
+            //This of course excludes modes of movement that differ from this norm, such as gliding with space held.
+            //Jumping in RPGs seems to be partially dependent on the length of time space is held down, up to a limit.
+
+            rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
+
+            //Legacy jump will increase increase the y value of the motor vector until
+            //a difference in position equal to the max height is reached, or until the
+            //jump hotkey is released.
+        } 
+    }
     void FixedUpdate()
-    //Use FixedUpdate to prevent object translation from being out of sync with physics frames
     {
         motor = Vector3.zero;
 
         cameraYaw = Mathf.Deg2Rad * heroCamera.transform.rotation.eulerAngles.y;
-
         motor.x = Mathf.Sin(cameraYaw);
         motor.z = Mathf.Cos(cameraYaw);
 
+        //This seems stupid, I'm just gonna stick it all in one place and do it all at once
         if (Input.GetKey(forward))
         {
             transform.Translate(motor * Time.deltaTime * walkSpeed);
-            //rbPhysics.MovePosition(motor);
-            //If clipping is due to physics, attempt this
         }
         if (Input.GetKey(back))
         {
@@ -84,21 +106,6 @@ public class HeroController : MonoBehaviour
             transform.Translate(Vector3.Cross(motor, Vector3.up) * Time.deltaTime * walkSpeed);
         }
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
-        if (Input.GetKeyDown(jump) && isGrounded == true)
-        {
-            isGrounded = false;
-            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held.
-            //This of course excludes modes of movement that differ from this norm, such as gliding with space held.
-            //Jumping in RPGs seems to be partially dependent on the length of time space is held down, up to a limit.
-
-            rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
-            //Impulse based movement is used to create a consistant jump height generally expected of an FPS character.
-
-            //Legacy jump will increase increase the y value of the motor vector until
-            //a difference in position equal to the max height is reached, or until the
-            //jump hotkey is released.
-            
-        }
         /*LEGACY:
          * if(rmb down)
          * {
