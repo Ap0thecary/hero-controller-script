@@ -24,17 +24,17 @@ public class HeroCamera : MonoBehaviour
     public bool isCursorLocked = true;
     public bool isThirdPerson = false;
 
+    private Quaternion rotary;
+    //rotary Vector used to rotate the camera in First-Person modes
     [Tooltip("An old-fashioned RPG-style control scheme")]
     public bool isLegacy = false;   
+    //Need to consolidate settings that affect both camera and controller to one script
 
     void Start()
     {
         heroCamera = GetComponent<Camera>();
         heroController = GetComponentInParent<HeroController>();
-        if (isLegacy == false)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     void Update()
@@ -43,13 +43,17 @@ public class HeroCamera : MonoBehaviour
         
         yaw += Input.GetAxis("Mouse X");
         pitch += Input.GetAxis("Mouse Y");
+        pitch = Mathf.Clamp(pitch, -90, 90);
+        //Pitch clamp is out here now. Vertigo problem solved!
+
+        rotary = Quaternion.Euler(new Vector3(-pitch, yaw, 0) * sensitivity);
+        //I moved the quaternion magic out here so now it only needs to be done once.
 
         zoomDistance += Input.GetAxis("Mouse ScrollWheel");
 
         if (isThirdPerson == false)
         {
-            heroCamera.transform.rotation = Quaternion.Euler(new Vector3(-pitch, yaw, 0) * sensitivity);
-            //Magic. Absolute magic.
+            heroCamera.transform.rotation = rotary;
         }
         if (isThirdPerson == true)
         {
@@ -59,15 +63,31 @@ public class HeroCamera : MonoBehaviour
                 thirdPersonDistance = Mathf.Clamp(thirdPersonDistance + zoomDistance, tpMinDistance, tpMaxDistance);
                 transform.position = parentPosition - new Vector3(thirdPersonDistance, 0, 0);
             }
-            pitch = Mathf.Clamp(pitch, -180, 180);
+
             heroCamera.transform.Rotate(Vector3.up,yaw);
             //Eldritch magicks are required here that I have yet to understand
             heroCamera.transform.Rotate(Vector3.right, pitch);
         }
-        if (isLegacy)
+        //LEGACY TIME bOIS
+        if (isLegacy == true)
         {
-            //That legacy shite
-            //Will require that camera and player interact more frequently
+            //Reset cursor to default so you can click stuff
+            Cursor.lockState = CursorLockMode.None;
+            //Do the stuff that controls the camera
+            if (Input.GetMouseButton(0)) //Left Mouse
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                heroCamera.transform.rotation = rotary;
+            }
+            if (Input.GetMouseButton(1)) //Right Mouse
+            {
+                //Tell the HeroController to rotate to the current direction of the camera
+                Cursor.lockState = CursorLockMode.Locked;
+                heroCamera.transform.rotation = rotary;
+            }
+            //The following is for my own benefit:
+            //IN BOTH THIRD AND FIRST PERSON MODE, THE ROTATION OF THE PLAYER WILL BE ENTIRELY MOUSE-DRIVEN
+            //LEFT AND RIGHT DIRECTIONAL INPUT SHALL ONLY CONTROL POSIITON.
         }
     }
 

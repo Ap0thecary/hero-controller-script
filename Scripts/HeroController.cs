@@ -8,6 +8,7 @@ public class HeroController : MonoBehaviour
     Rigidbody rbPhysics;
     CapsuleCollider col;
     public bool isThirdPerson = false;
+    public bool isLegacy = false;
 
 //Movement Stats
 
@@ -28,6 +29,7 @@ public class HeroController : MonoBehaviour
 
     public KeyCode jump = KeyCode.Space;
     public float jumpStrength = 1f;
+    public float jumpResetThreshold = 1f;
     public float legacyMaxJump = 1f;
 
     public bool strafeEnabled = false;
@@ -58,8 +60,18 @@ public class HeroController : MonoBehaviour
     }
     private void OnCollisionEnter(Collision groundCheck)
     {
-        //Use to reset isGrounded to true
-
+        int numContacts = groundCheck.contactCount;
+        ContactPoint[] cp;
+        cp = new ContactPoint[numContacts];
+        groundCheck.GetContacts(cp);
+        Debug.Log("# of contact points: " + numContacts + "\nFirst ContactPoint normal: " + cp[0].normal);
+        for (int con = 0; con < numContacts; con++)
+        {
+            //Compare the normal of the point of collision to up, see if it is up
+            Vector3.Dot(cp[con].normal, Vector3.up);
+        }
+        //Compare cp[].normal to Vector3.up using Vector3.Dot(cp[x].normal,Vector3.up)
+        //FOR-EACH LOOP BINCH
         //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
         //should be reset. Otherwise, the surface is "too steep" and cannot be jumped from.
     }
@@ -68,13 +80,7 @@ public class HeroController : MonoBehaviour
         if (Input.GetKeyDown(jump) && isGrounded == true)
         { 
             //isGrounded = false;
-
-            //FPS Style jumping seems to be fairly constant, regardless of how long the space bar is held.
-            //This of course excludes modes of movement that differ from this norm, such as gliding with space held.
-            //Jumping in RPGs seems to be partially dependent on the length of time space is held down, up to a limit.
-
             rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
-
             //Legacy jump will increase increase the y value of the motor vector until
             //a difference in position equal to the max height is reached, or until the
             //jump hotkey is released.
@@ -88,36 +94,19 @@ public class HeroController : MonoBehaviour
         motor.x = Mathf.Sin(cameraYaw);
         motor.z = Mathf.Cos(cameraYaw);
 
-        //This seems stupid, I'm just gonna stick it all in one place and do it all at once
-        if (Input.GetKey(forward))
-        {
-            transform.Translate(motor * Time.deltaTime * walkSpeed);
-        }
-        if (Input.GetKey(back))
-        {
-            transform.Translate(-motor * Time.deltaTime * walkSpeed);
-        }
-        if (Input.GetKey(right))
-        {
-            transform.Translate(-Vector3.Cross(motor, Vector3.up) * Time.deltaTime * walkSpeed);
-        }
-        if (Input.GetKey(left))
-        {
-            transform.Translate(Vector3.Cross(motor, Vector3.up) * Time.deltaTime * walkSpeed);
-        }
+        motor = motor * Time.deltaTime * walkSpeed;
+        Vector3 crossMotor = Vector3.Cross(motor, Vector3.up) * Time.deltaTime * walkSpeed;
+
+        if (Input.GetKey(forward))  transform.Translate(motor);
+        if (Input.GetKey(back))     transform.Translate(-motor);
+        if (Input.GetKey(left))     transform.Translate(crossMotor);
+        if (Input.GetKey(right)) transform.Translate(-crossMotor);
+
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
-        /*LEGACY:
-         * if(rmb down)
-         * {
-         *  lock cursor
-         *  rotate view
-         *  rotate character to face view
-         * }
-         * if(lmb down)
-         * {
-         *  lock cursor
-         *  rotate only the view 
-         * }
-         */
+        if (isLegacy == true)
+        {
+            //Stuff to do with the controller
+            //Unsync camera from controller
+        }
     }
 }
