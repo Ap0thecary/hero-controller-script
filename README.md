@@ -8,5 +8,6 @@ Current Features:
 
 Planned Features:
 - Third-person control
-- Jumping that is actually consistent??
+- Jumping that checks whether you're grounded or not
+- WALL JUMPING WALL JUMPING WALL JUMPING WALL JUMPING
 - A legacy control scheme such as the one seen in older RPG games
