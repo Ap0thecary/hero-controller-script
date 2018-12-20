@@ -28,8 +28,8 @@ public class HeroController : MonoBehaviour
     public KeyCode run = KeyCode.LeftShift;
 
     public KeyCode jump = KeyCode.Space;
-    public float jumpStrength = 1f;
-    public float jumpResetThreshold = 1f;
+    public float jumpStrength = 200f;
+    public float jumpResetThreshold = .35f;
     public float legacyMaxJump = 1f;
 
     public bool strafeEnabled = false;
@@ -64,12 +64,14 @@ public class HeroController : MonoBehaviour
         ContactPoint[] cp;
         cp = new ContactPoint[numContacts];
         groundCheck.GetContacts(cp);
-        Debug.Log("# of contact points: " + numContacts + "\nFirst ContactPoint normal: " + cp[0].normal);
+
         for (int con = 0; con < numContacts; con++)
         {
             //Compare the normal of the point of collision to up, see if it is up
-            Vector3.Dot(cp[con].normal, Vector3.up);
+            if (Vector3.Dot(cp[con].normal, Vector3.up) > jumpResetThreshold) isGrounded = true;
+            else isGrounded = false;
         }
+        Debug.Log("# of contact points: " + numContacts + "\nFirst ContactPoint normal: " + cp[0].normal + "\nDot Product: " + Vector3.Dot(cp[0].normal,Vector3.up));
         //Compare cp[].normal to Vector3.up using Vector3.Dot(cp[x].normal,Vector3.up)
         //FOR-EACH LOOP BINCH
         //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
@@ -94,13 +96,13 @@ public class HeroController : MonoBehaviour
         motor.x = Mathf.Sin(cameraYaw);
         motor.z = Mathf.Cos(cameraYaw);
 
-        motor = motor * Time.deltaTime * walkSpeed;
-        Vector3 crossMotor = Vector3.Cross(motor, Vector3.up) * Time.deltaTime * walkSpeed;
+        Vector3 crossMotor = Vector3.Cross(motor, Vector3.up) * walkSpeed;
+        motor = motor * walkSpeed;
 
         if (Input.GetKey(forward))  transform.Translate(motor);
         if (Input.GetKey(back))     transform.Translate(-motor);
         if (Input.GetKey(left))     transform.Translate(crossMotor);
-        if (Input.GetKey(right)) transform.Translate(-crossMotor);
+        if (Input.GetKey(right))    transform.Translate(-crossMotor);
 
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
         if (isLegacy == true)

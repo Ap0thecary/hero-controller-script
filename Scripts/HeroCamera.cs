@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class HeroCamera : MonoBehaviour
 {
     Camera heroCamera;
@@ -12,8 +13,8 @@ public class HeroCamera : MonoBehaviour
     public float yaw;
     private float pitch;
     private float zoomDistance;
-
     public float thirdPersonDistance = 1;
+
     public float thirdPersonHeight;
     [Tooltip("Collision detection radius for third-person mode")]
     public float thirdPersonCollisionRadius = 1;
@@ -43,10 +44,10 @@ public class HeroCamera : MonoBehaviour
         
         yaw += Input.GetAxis("Mouse X");
         pitch += Input.GetAxis("Mouse Y");
-        pitch = Mathf.Clamp(pitch, -90, 90);
+        float clampedPitch = Mathf.Clamp(pitch, -85, 85);
         //Pitch clamp is out here now. Vertigo problem solved!
 
-        rotary = Quaternion.Euler(new Vector3(-pitch, yaw, 0) * sensitivity);
+        rotary = Quaternion.Euler(new Vector3(-clampedPitch, yaw, 0) * sensitivity);
         //I moved the quaternion magic out here so now it only needs to be done once.
 
         zoomDistance += Input.GetAxis("Mouse ScrollWheel");
