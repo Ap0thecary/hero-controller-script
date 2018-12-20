@@ -4,7 +4,6 @@ C# script for creating a simple 1st or 3rd person player in Unity with support f
 Current Features:
 - Smooth, simple first-person controller with exposed parameters
 - Movement and physics that respect the characteristics of the surfaces involved
-- Jumping, the height of which may vary greatly between jumps
 
 Planned Features:
 - Third-person control
