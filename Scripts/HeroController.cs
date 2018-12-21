@@ -11,7 +11,7 @@ public class HeroController : MonoBehaviour
     public bool isLegacy = false;
 
 //Movement Stats
-
+    [Header("Movement Attributes")]
     public float walkSpeed = 5f;
     public float runSpeed = 10f;
     public bool isRunning = false;
@@ -20,20 +20,22 @@ public class HeroController : MonoBehaviour
 
 //Control Mappings
 
-//May be migrated to a separate script at a later date
+    [Header("Control Mappings")]
     public KeyCode forward = KeyCode.W;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
     public KeyCode back = KeyCode.S;
     public KeyCode run = KeyCode.LeftShift;
 
+    [Header("Jump Settings")]
     public KeyCode jump = KeyCode.Space;
     public float jumpStrength = 200f;
     public float jumpResetThreshold = .35f;
     public float legacyMaxJump = 1f;
 
+    [Header("Strafe Settings")]
+    [Tooltip("Allows diagonal forwards movement. Should not be enabled without Legacy Mode, especially if you plan to use the Q and E keys for something else.")]
     public bool strafeEnabled = false;
-
     public KeyCode strafeLeft = KeyCode.Q;
     public KeyCode strafeRight = KeyCode.E;
 
@@ -58,22 +60,29 @@ public class HeroController : MonoBehaviour
         rbPhysics = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
     }
-    private void OnCollisionEnter(Collision groundCheck)
+    private void OnCollisionStay(Collision groundCheck)
     {
         int numContacts = groundCheck.contactCount;
         ContactPoint[] cp;
         cp = new ContactPoint[numContacts];
         groundCheck.GetContacts(cp);
-
+        
+        
         for (int con = 0; con < numContacts; con++)
         {
+            float dotComparison = Vector3.Dot(cp[con].normal, Vector3.up);
             //Compare the normal of the point of collision to up, see if it is up
-            if (Vector3.Dot(cp[con].normal, Vector3.up) > jumpResetThreshold) isGrounded = true;
+            if (dotComparison > jumpResetThreshold)
+            {
+                
+                isGrounded = true;
+                break;
+            }
             else isGrounded = false;
+            Debug.Log(numContacts + "\n" + cp[0].normal + "\n" + dotComparison);
         }
-        Debug.Log("# of contact points: " + numContacts + "\nFirst ContactPoint normal: " + cp[0].normal + "\nDot Product: " + Vector3.Dot(cp[0].normal,Vector3.up));
         //Compare cp[].normal to Vector3.up using Vector3.Dot(cp[x].normal,Vector3.up)
-        //FOR-EACH LOOP BINCH
+
         //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
         //should be reset. Otherwise, the surface is "too steep" and cannot be jumped from.
     }
@@ -81,12 +90,17 @@ public class HeroController : MonoBehaviour
     {
         if (Input.GetKeyDown(jump) && isGrounded == true)
         { 
-            //isGrounded = false;
+            isGrounded = false;
             rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
+
             //Legacy jump will increase increase the y value of the motor vector until
             //a difference in position equal to the max height is reached, or until the
             //jump hotkey is released.
         } 
+        if (transform.position.y < -25)
+        {
+            transform.position = new Vector3(0, 1, 0);
+        }
     }
     void FixedUpdate()
     {
