@@ -29,8 +29,8 @@ public class HeroController : MonoBehaviour
 
     [Header("Jump Settings")]
     public KeyCode jump = KeyCode.Space;
-    public float jumpStrength = 200f;
-    public float jumpResetThreshold = .35f;
+    public float jumpStrength = 300f;
+    public float jumpThreshold = .35f;
     public float legacyMaxJump = 1f;
 
     [Header("Strafe Settings")]
@@ -55,41 +55,38 @@ public class HeroController : MonoBehaviour
 
     void Start()
     {
-        //get all the stuff I need to operate on
         heroCamera = GetComponentInChildren<Camera>();
         rbPhysics = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
     }
-    private void OnCollisionStay(Collision groundCheck)
+    private void OnCollisionEnter(Collision groundCheckEnter)
     {
-        int numContacts = groundCheck.contactCount;
-        ContactPoint[] cp;
-        cp = new ContactPoint[numContacts];
-        groundCheck.GetContacts(cp);
-        
-        
-        for (int con = 0; con < numContacts; con++)
+        if (isGrounded == false)
         {
-            float dotComparison = Vector3.Dot(cp[con].normal, Vector3.up);
-            //Compare the normal of the point of collision to up, see if it is up
-            if (dotComparison > jumpResetThreshold)
+            int numContacts = groundCheckEnter.contactCount;
+            ContactPoint[] cp;
+            cp = new ContactPoint[numContacts];
+            groundCheckEnter.GetContacts(cp);
+            for (int con = 0; con < numContacts; con++)
             {
-                
-                isGrounded = true;
-                break;
+                float dotComparison = Vector3.Dot(cp[con].normal, Vector3.up);
+                //Compare the normal of the point of collision to up, see if it is up
+                if (dotComparison > jumpThreshold)
+                {
+                    isGrounded = true;
+                    break;
+                }
+                else
+                {
+                    isGrounded = false;
+                }
             }
-            else isGrounded = false;
-            Debug.Log(numContacts + "\n" + cp[0].normal + "\n" + dotComparison);
         }
-        //Compare cp[].normal to Vector3.up using Vector3.Dot(cp[x].normal,Vector3.up)
-
-        //Use the ContactPoint Normal direction within a threshold to determine if isGrounded
-        //should be reset. Otherwise, the surface is "too steep" and cannot be jumped from.
     }
     void Update()
     {
         if (Input.GetKeyDown(jump) && isGrounded == true)
-        { 
+        {
             isGrounded = false;
             rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
 
@@ -112,7 +109,11 @@ public class HeroController : MonoBehaviour
 
         Vector3 crossMotor = Vector3.Cross(motor, Vector3.up) * walkSpeed;
         motor = motor * walkSpeed;
-
+        if (Input.GetKey(run))
+        {
+            motor *= runSpeed;
+            crossMotor *= runSpeed;
+        }
         if (Input.GetKey(forward))  transform.Translate(motor);
         if (Input.GetKey(back))     transform.Translate(-motor);
         if (Input.GetKey(left))     transform.Translate(crossMotor);
