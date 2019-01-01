@@ -4,22 +4,27 @@ using UnityEngine;
 
 public class HeroController : MonoBehaviour
 {
-    Camera heroCamera;
+    HeroViewer heroViewer;
+    Camera mainCamera;
     Rigidbody rbPhysics;
     CapsuleCollider col;
-    public bool isThirdPerson = false;
+    
+    [Header("Mode Settings")]
     public bool isLegacy = false;
+    public bool isThirdPerson = false;
+    public bool adaptiveView = false;
+    //Allows transition from first to third person and vice-verse when zooming out in first person,
+    //or zooming in past [minDistance] in third person.
 
 //Movement Stats
     [Header("Movement Attributes")]
-    public float walkSpeed = 5f;
-    public float runSpeed = 10f;
+    public float walkSpeed = .1f;
+    public float runSpeedMult = 2f;
     public bool isRunning = false;
     public bool isFlying = false;
     public bool isGrounded = true;
 
 //Control Mappings
-
     [Header("Control Mappings")]
     public KeyCode forward = KeyCode.W;
     public KeyCode left = KeyCode.A;
@@ -39,15 +44,9 @@ public class HeroController : MonoBehaviour
     public KeyCode strafeLeft = KeyCode.Q;
     public KeyCode strafeRight = KeyCode.E;
 
-    public float jumpHeightMax = 1f;
-
-    //I AM GONNA PUT A WALL JUMPING FEATURE IN
-    //AND NOBODY CAN TELL ME OTHERWISE
-    //GO AHEAD TRY TO STOP ME
-    //YOU CANNOT BECAUSE I AM SLIPPERY AND COVERED IN JAM
+    [Header("Wall Jumping")]
     public bool canWallJump = false;
     public float hangTime = 5f;
-    //Also an angle threshold or something?
 
     //Control Vars
     private float cameraYaw;
@@ -55,10 +54,13 @@ public class HeroController : MonoBehaviour
 
     void Start()
     {
-        heroCamera = GetComponentInChildren<Camera>();
+        heroViewer = GetComponentInChildren<HeroViewer>();
+        mainCamera = GetComponent<Camera>();
+
         rbPhysics = GetComponent<Rigidbody>();
         col = GetComponent<CapsuleCollider>();
     }
+
     private void OnCollisionEnter(Collision groundCheckEnter)
     {
         if (isGrounded == false)
@@ -70,7 +72,6 @@ public class HeroController : MonoBehaviour
             for (int con = 0; con < numContacts; con++)
             {
                 float dotComparison = Vector3.Dot(cp[con].normal, Vector3.up);
-                //Compare the normal of the point of collision to up, see if it is up
                 if (dotComparison > jumpThreshold)
                 {
                     isGrounded = true;
@@ -83,6 +84,7 @@ public class HeroController : MonoBehaviour
             }
         }
     }
+
     void Update()
     {
         if (Input.GetKeyDown(jump) && isGrounded == true)
@@ -101,29 +103,28 @@ public class HeroController : MonoBehaviour
     }
     void FixedUpdate()
     {
+        
         motor = Vector3.zero;
 
-        cameraYaw = Mathf.Deg2Rad * heroCamera.transform.rotation.eulerAngles.y;
+        cameraYaw = Mathf.Deg2Rad * heroViewer.transform.rotation.eulerAngles.y;
         motor.x = Mathf.Sin(cameraYaw);
         motor.z = Mathf.Cos(cameraYaw);
 
         Vector3 crossMotor = Vector3.Cross(motor, Vector3.up) * walkSpeed;
         motor = motor * walkSpeed;
+
         if (Input.GetKey(run))
         {
-            motor *= runSpeed;
-            crossMotor *= runSpeed;
+            motor *= runSpeedMult;
+            crossMotor *= runSpeedMult;
         }
+
         if (Input.GetKey(forward))  transform.Translate(motor);
         if (Input.GetKey(back))     transform.Translate(-motor);
         if (Input.GetKey(left))     transform.Translate(crossMotor);
         if (Input.GetKey(right))    transform.Translate(-crossMotor);
 
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
-        if (isLegacy == true)
-        {
-            //Stuff to do with the controller
-            //Unsync camera from controller
-        }
-    }
+
+    }    
 }
