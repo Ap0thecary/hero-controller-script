@@ -105,10 +105,15 @@ public class HeroViewer : MonoBehaviour
         transform.localPosition += new Vector3(0,cameraHeight,0);
 
         RaycastHit hit;
-        if(Physics.Linecast(pivot.transform.position,transform.position,out hit))
+        Physics.Linecast(transform.position,pivot.transform.position,out hit);         
+        while(hit.collider.tag != "Player")
         {
-            zoomDistance -= hit.distance;
-
+            //When you're not looking at the player, move forward until you are.
+            //Also, teleportation.
+            //Just set the localPosition - whatever amount of space is in the way
+            //There really shouldn't be any room/time to have the camera behind something
+            //Am I delirious right now? Quite.
+            Debug.Log("How dare you cast eyes at anything other than your player? How could you? You filthy pervert, have some decency!");
         }
 
         transform.localPosition += new Vector3(0,0,-zoomDistance);
