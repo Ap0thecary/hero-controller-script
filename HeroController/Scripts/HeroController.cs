@@ -49,7 +49,7 @@ public class HeroController : MonoBehaviour
     public float hangTime = 5f;
 
     //Control Vars
-    private float cameraYaw;
+
     private Vector3 motor;
 
     void Start()
@@ -106,7 +106,7 @@ public class HeroController : MonoBehaviour
         
         motor = Vector3.zero;
 
-        cameraYaw = Mathf.Deg2Rad * heroViewer.transform.rotation.eulerAngles.y;
+        float cameraYaw = Mathf.Deg2Rad * GetCameraRotation();
         motor.x = Mathf.Sin(cameraYaw);
         motor.z = Mathf.Cos(cameraYaw);
 
@@ -126,5 +126,20 @@ public class HeroController : MonoBehaviour
 
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
 
-    }    
+    }
+
+    public float GetCameraRotation()
+    {
+        float yaw;
+
+        if (isThirdPerson) yaw = heroViewer.pivot.transform.rotation.eulerAngles.y;
+        else yaw = heroViewer.transform.rotation.eulerAngles.y;
+
+        return yaw;
+    }
+
+    public void LegacyMode()
+    {
+
+    }
 }

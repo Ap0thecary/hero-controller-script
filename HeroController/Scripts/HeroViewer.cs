@@ -9,14 +9,16 @@ public class HeroViewer : MonoBehaviour
 
     private Camera heroCamera;
     private HeroController heroController;
-    private GameObject pivot;
+
+    [HideInInspector]
+    public GameObject pivot;
 
     private bool isThirdPerson;
     private bool isLegacy;
     private bool isAdaptive;
 
     public float sensitivity = 1;
-    public float cameraHeight = .75f;
+    public float cameraHeight = .5f;
 
     [HideInInspector]
     public float yaw;
@@ -43,7 +45,7 @@ public class HeroViewer : MonoBehaviour
     
     void LateUpdate()
     {
-        modeCheck();
+        ModeCheck();
         
         transform.localRotation = Quaternion.Euler(Vector3.zero);
 
@@ -63,12 +65,25 @@ public class HeroViewer : MonoBehaviour
         else Cursor.lockState = CursorLockMode.Locked;
     }
 
-    public void modeCheck()
+    public void ModeCheck()
     {
         //Check HeroController for cameraModes
         isThirdPerson = heroController.isThirdPerson;
         isLegacy = heroController.isLegacy;
         isAdaptive = heroController.adaptiveView;
+    }
+
+    public void ModeTransition()
+    {
+        //Probably just transformations
+        if(isThirdPerson)
+        {
+            //Shift camera to zoomDistance over a short duration
+        }
+        else
+        {
+            //Shift camera back to the origin and height, removing the pivot
+        }
     }
 
     public void FirstPersonTransform(Quaternion rotation)
@@ -88,22 +103,18 @@ public class HeroViewer : MonoBehaviour
         }
         transform.localPosition = Vector3.zero;
         transform.localPosition += new Vector3(0,cameraHeight,0);
+
+        RaycastHit hit;
+        if(Physics.Linecast(pivot.transform.position,transform.position,out hit))
+        {
+            zoomDistance -= hit.distance;
+
+        }
+
         transform.localPosition += new Vector3(0,0,-zoomDistance);
 
         pivot.transform.rotation = rotation;
-    }
-    
-    public void modeTransition()
-    {
-        //Make things happen
-        if(isThirdPerson)
-        {
 
-        }
-        else
-        {
-
-        }
     }
 }
 
