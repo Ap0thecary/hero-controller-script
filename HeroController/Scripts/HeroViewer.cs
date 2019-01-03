@@ -103,28 +103,12 @@ public class HeroViewer : MonoBehaviour
         }
         transform.localPosition = Vector3.zero;
         transform.localPosition += new Vector3(0,cameraHeight,0);
-
-        RaycastHit hit;
-        Physics.Linecast(transform.position,pivot.transform.position,out hit);         
-        while(hit.collider.tag != "Player")
-        {
-            //When you're not looking at the player, move forward until you are.
-            //Also, teleportation.
-            //Just set the localPosition - whatever amount of space is in the way
-            //There really shouldn't be any room/time to have the camera behind something
-            //Am I delirious right now? Quite.
-            Debug.Log("How dare you cast eyes at anything other than your player? How could you? You filthy pervert, have some decency!");
-        }
-
         transform.localPosition += new Vector3(0,0,-zoomDistance);
-
+        RaycastHit hit;
+        if(Physics.Linecast(pivot.transform.position,transform.position,out hit))
+        {
+            transform.position = hit.point;
+        }
         pivot.transform.rotation = rotation;
-
     }
 }
-
-//First, we set the camera's position the same as the controller/parent.
-//Ok so for now lets say that distance from the camera is CONSTANT. We'll set it, as such, on the first step.
-//Set the camera's position to the default zoom distance.
-//Legacy mode can be implemented by reducing the motion vectors to zero unless the requisite mousebutton is held down
-//May need to tidy that up in it's own function. All good. 
