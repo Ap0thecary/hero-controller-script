@@ -3,7 +3,7 @@ A C# script for creating a simple 1st or 3rd person player in Unity with support
 
 Current Features:
 - Flexible, intelligent First-Person controls
-- Basic Third-Person capabilities. Improvements to come!
+- Smooth Third-Person camera movement
 
 Planned Features:
 - Yes there will probably be wall jumping
