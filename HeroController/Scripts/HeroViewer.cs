@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //Revised version of HeroCamera. Will eventually replace it with this, probably.
+// TODO: Move parameters into HeroController
 
 public class HeroViewer : MonoBehaviour
 {
@@ -10,18 +11,18 @@ public class HeroViewer : MonoBehaviour
     private Camera heroCamera;
     private HeroController heroController;
 
-    [HideInInspector]
-    public GameObject pivot;
+    [HideInInspector] public GameObject pivot;
 
     private bool isThirdPerson;
     private bool isLegacy;
     private bool isAdaptive;
 
     public float sensitivity = 1;
+    public float transitionSpeed;
     public float cameraHeight = .5f;
 
-    [HideInInspector]
-    public float yaw;
+
+    [HideInInspector] public float yaw;
     private float pitch;
 
     public float zoomDistance;
@@ -73,16 +74,20 @@ public class HeroViewer : MonoBehaviour
         isAdaptive = heroController.adaptiveView;
     }
 
-    public void ModeTransition()
+    public void ThirdPersonTransition()
     {
-        //Probably just transformations
-        if(isThirdPerson)
+        //Are you already at the minimum distance, and still trying to zoom in?
+        if (zoomDistance == minDistance && Input.GetAxis("Mouse ScrollWheel") < 0)
         {
-            //Shift camera to zoomDistance over a short duration
+            //Then try NEW! ThirdPersonTransition, for all your view-switching needs
         }
-        else
+    }
+
+    public void FirstPersonTransition()
+    {
+        if (Input.GetAxis("Mouse ScrollWheel") > 0)
         {
-            //Shift camera back to the origin and height, removing the pivot
+
         }
     }
 
@@ -92,6 +97,7 @@ public class HeroViewer : MonoBehaviour
         {
             transform.parent = heroController.transform;
         }
+
         transform.localPosition = new Vector3(0,cameraHeight,0);
         transform.rotation = rotation;
     }
@@ -101,9 +107,11 @@ public class HeroViewer : MonoBehaviour
         {
             transform.parent = pivot.transform;
         }
+
         transform.localPosition = Vector3.zero;
         transform.localPosition += new Vector3(0,cameraHeight,0);
         transform.localPosition += new Vector3(0,0,-zoomDistance);
+
         RaycastHit hit;
         if(Physics.Linecast(pivot.transform.position,transform.position,out hit))
         {
