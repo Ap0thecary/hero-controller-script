@@ -77,17 +77,23 @@ public class HeroViewer : MonoBehaviour
     public void ThirdPersonTransition()
     {
         //Are you already at the minimum distance, and still trying to zoom in?
-        if (zoomDistance == minDistance && Input.GetAxis("Mouse ScrollWheel") < 0)
+        if (zoomDistance <= minDistance && Input.GetAxis("Mouse ScrollWheel") < 0)
         {
             //Then try NEW! ThirdPersonTransition, for all your view-switching needs
+            transform.position = Vector3.Slerp(transform.position,pivot.transform.position,Time.deltaTime);
         }
     }
 
     public void FirstPersonTransition()
     {
+        //In First Person? Need to see more? Trying, desperately, to zoom out, desipite knowing your efforts are futile?
+        //Then submit.
         if (Input.GetAxis("Mouse ScrollWheel") > 0)
         {
-
+            //OR, try NEW! FirstPersonTransition, For peeking around corners unnecessarily
+            //Lerp to [minDistance]
+            Vector3 minPosition = new Vector3(transform.localPosition.x,transform.localPosition.y, minDistance);
+            transform.position = Vector3.Slerp(transform.position,minPosition,Time.deltaTime);
         }
     }
 
@@ -113,10 +119,11 @@ public class HeroViewer : MonoBehaviour
         transform.localPosition += new Vector3(0,0,-zoomDistance);
 
         RaycastHit hit;
-        if(Physics.Linecast(pivot.transform.position,transform.position,out hit))
+        if(Physics.Linecast(pivot.transform.position,transform.position,out hit,9))
         {
             transform.position = hit.point;
         }
+        // TODO: Hire new camera man
         pivot.transform.rotation = rotation;
     }
 }
