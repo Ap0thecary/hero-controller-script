@@ -15,24 +15,21 @@ public class HeroViewer : MonoBehaviour
 
     private bool isThirdPerson;
     private bool isLegacy;
-    private bool isAdaptive;
+    public bool isAdaptive;
 
-    public float sensitivity = 1;
-    public float transitionSpeed;
-    public float cameraHeight = .5f;
-
+    private float sensitivity = 1;
+    private float transitionSpeed;
+    private float cameraHeight;
 
     [HideInInspector] public float yaw;
     private float pitch;
 
-    public float zoomDistance;
-    public float minDistance = 1f;
-    public float maxDistance = 5f;
+    private float zoomDistance = .75f;
+    private float minDistance = .5f;
+    private float maxDistance = 2f;
 
     private bool isCursorLocked;
     private bool isTransitioning = false;
-
-    private Vector3 parentPosition;
 
     void Start()
     {
@@ -46,7 +43,7 @@ public class HeroViewer : MonoBehaviour
     
     void LateUpdate()
     {
-        ModeCheck();
+        ControllerCheck();
         
         transform.localRotation = Quaternion.Euler(Vector3.zero);
 
@@ -61,26 +58,39 @@ public class HeroViewer : MonoBehaviour
 
         if (isThirdPerson) ThirdPersonTransform(rotation);
         else FirstPersonTransform(rotation);
+        
+        if (isAdaptive)
+        {
+            FirstPersonTransition();
+            ThirdPersonTransition();
+        }
 
         if(isLegacy) Cursor.lockState = CursorLockMode.Confined;
         else Cursor.lockState = CursorLockMode.Locked;
     }
 
-    public void ModeCheck()
+    public void ControllerCheck()
     {
         //Check HeroController for cameraModes
         isThirdPerson = heroController.isThirdPerson;
         isLegacy = heroController.isLegacy;
         isAdaptive = heroController.adaptiveView;
+
+        //Check for Settings
+        sensitivity = heroController.sensitivity;
+        cameraHeight = heroController.cameraHeight;
+        maxDistance = heroController.maxZoomDistance;
+        minDistance = heroController.minZoomDistance;
     }
 
     public void ThirdPersonTransition()
     {
         //Are you already at the minimum distance, and still trying to zoom in?
-        if (zoomDistance <= minDistance && Input.GetAxis("Mouse ScrollWheel") < 0)
+        if (isThirdPerson == true && zoomDistance == minDistance && Input.GetAxis("Mouse ScrollWheel") < 0)
         {
             //Then try NEW! ThirdPersonTransition, for all your view-switching needs
             transform.position = Vector3.Slerp(transform.position,pivot.transform.position,Time.deltaTime);
+            isThirdPerson = false;
         }
     }
 
@@ -88,12 +98,13 @@ public class HeroViewer : MonoBehaviour
     {
         //In First Person? Need to see more? Trying, desperately, to zoom out, desipite knowing your efforts are futile?
         //Then submit.
-        if (Input.GetAxis("Mouse ScrollWheel") > 0)
+        if (isThirdPerson == false && Input.GetAxis("Mouse ScrollWheel") > 0)
         {
             //OR, try NEW! FirstPersonTransition, For peeking around corners unnecessarily
             //Lerp to [minDistance]
             Vector3 minPosition = new Vector3(transform.localPosition.x,transform.localPosition.y, minDistance);
             transform.position = Vector3.Slerp(transform.position,minPosition,Time.deltaTime);
+            isThirdPerson = true;
         }
     }
 
@@ -123,7 +134,7 @@ public class HeroViewer : MonoBehaviour
         {
             transform.position = hit.point;
         }
-        // TODO: Hire new camera man
+
         pivot.transform.rotation = rotation;
     }
 }

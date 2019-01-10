@@ -10,13 +10,12 @@ public class HeroController : MonoBehaviour
     CapsuleCollider col;
     
     [Header("Mode Settings")]
-    public bool isLegacy = false;
+    [HideInInspector] public bool isLegacy = false;
     public bool isThirdPerson = false;
     public bool adaptiveView = false;
     //Allows transition from first to third person and vice-verse when zooming out in first person,
     //or zooming in past [minDistance] in third person.
 
-//Movement Stats
     [Header("Movement Attributes")]
     public float walkSpeed = .1f;
     public float runSpeedMult = 2f;
@@ -24,19 +23,27 @@ public class HeroController : MonoBehaviour
     public bool isFlying = false;
     public bool isGrounded = true;
 
-//Control Mappings
+//Camera Attributes
+    [Header("Camera Attributes")]
+    public float cameraHeight = .125f;
+    public float sensitivity = 1;
+    public float maxZoomDistance = .5f;
+    public float minZoomDistance = 2f;
+    
     [Header("Control Mappings")]
     public KeyCode forward = KeyCode.W;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
     public KeyCode back = KeyCode.S;
     public KeyCode run = KeyCode.LeftShift;
+    public KeyCode crouch = KeyCode.LeftControl;
 
     [Header("Jump Settings")]
     public KeyCode jump = KeyCode.Space;
     public float jumpStrength = 300f;
+    [Tooltip("This threshold is tested against to determine if a surface is horizontal enough to qualify as \'grounded\'. A value of zero will cause all surfaces to be considered ground, while a value of one will only consider perfectly horizontal surfaces to be ground.")]
     public float jumpThreshold = .35f;
-    public float legacyMaxJump = 1f;
+    //public float legacyMaxJump = 1f;
 
     [Header("Strafe Settings")]
     [Tooltip("Allows diagonal forwards movement. Should not be enabled without Legacy Mode, especially if you plan to use the Q and E keys for something else.")]
@@ -46,11 +53,7 @@ public class HeroController : MonoBehaviour
 
     [Header("Wall Jumping")]
     public bool canWallJump = false;
-    public float hangTime = 5f;
-
-    //Control Vars
-
-    private Vector3 motor;
+    public float hangTime = 2f;
 
     void Start()
     {
@@ -63,23 +66,30 @@ public class HeroController : MonoBehaviour
 
     private void OnCollisionEnter(Collision groundCheckEnter)
     {
+        //Only check if you're not on the ground
         if (isGrounded == false)
         {
             int numContacts = groundCheckEnter.contactCount;
-            ContactPoint[] cp;
-            cp = new ContactPoint[numContacts];
+            ContactPoint[] cp = new ContactPoint[numContacts];
+            //Get all contact points from the collision
             groundCheckEnter.GetContacts(cp);
+            //Test them. Each of them. TEST ALL OF THEM.
             for (int con = 0; con < numContacts; con++)
             {
+                //Create a comparison between the normal of the contact point and the up-direction.
+                //Spherical worlds not yet supported.
                 float dotComparison = Vector3.Dot(cp[con].normal, Vector3.up);
                 if (dotComparison > jumpThreshold)
                 {
                     isGrounded = true;
+                    //Break from the for statement, a point has been found!
                     break;
                 }
                 else
                 {
+                    //Or just stay here. We don't mind. We enjoy the company.
                     isGrounded = false;
+                    //Unless that was the last contact point, in which case, get out.
                 }
             }
         }
@@ -91,10 +101,6 @@ public class HeroController : MonoBehaviour
         {
             isGrounded = false;
             rbPhysics.AddForce(Vector3.up * jumpStrength, ForceMode.Impulse);
-
-            //Legacy jump will increase increase the y value of the motor vector until
-            //a difference in position equal to the max height is reached, or until the
-            //jump hotkey is released.
         } 
         if (transform.position.y < -25)
         {
@@ -103,8 +109,7 @@ public class HeroController : MonoBehaviour
     }
     void FixedUpdate()
     {
-        
-        motor = Vector3.zero;
+        Vector3 motor = Vector3.zero;   
 
         float cameraYaw = Mathf.Deg2Rad * GetCameraRotation();
         motor.x = Mathf.Sin(cameraYaw);
@@ -123,9 +128,16 @@ public class HeroController : MonoBehaviour
         if (Input.GetKey(back))     transform.Translate(-motor);
         if (Input.GetKey(left))     transform.Translate(crossMotor);
         if (Input.GetKey(right))    transform.Translate(-crossMotor);
+        
+        if(strafeEnabled)
+        {
+            Vector3 lStrafeDir = Vector3.Slerp(motor,crossMotor,.5f);
+            Vector3 rStrafeDir = Vector3.Slerp(motor,-crossMotor,.5f);
+            if (Input.GetKey(strafeLeft)) transform.Translate(lStrafeDir);
+            if (Input.GetKey(strafeRight)) transform.Translate(rStrafeDir);
+        }
 
         transform.rotation = Quaternion.AngleAxis(cameraYaw, Vector3.up);
-
     }
 
     public float GetCameraRotation()
@@ -136,10 +148,5 @@ public class HeroController : MonoBehaviour
         else yaw = heroViewer.transform.rotation.eulerAngles.y;
 
         return yaw;
-    }
-
-    public void LegacyMode()
-    {
-
     }
 }
