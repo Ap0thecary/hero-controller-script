@@ -82,15 +82,12 @@ public class HeroController : MonoBehaviour
                 if (dotComparison > jumpThreshold)
                 {
                     isGrounded = true;
-                    //Break from the for statement, a point has been found!
                     break;
+                    //Break from the for statement, a point has been found!
                 }
-                else
-                {
-                    //Or just stay here. We don't mind. We enjoy the company.
-                    isGrounded = false;
-                    //Unless that was the last contact point, in which case, get out.
-                }
+                else isGrounded = false;
+                //Or just stay here. We don't mind. We enjoy the company.
+                //Unless that was the last contact point, in which case, get out.
             }
         }
     }
@@ -149,4 +146,13 @@ public class HeroController : MonoBehaviour
 
         return yaw;
     }
+    public void WallJump(float threshold, float duration, float minHeight)
+    {
+        //facing normal = forward * rigidbody rotation
+        //wall normal dot facing normal
+        //if above threshold, lock movement for a mo', and reset isGrounded to true for duration
+        //Test against minHeight from the ground, may be masked off.
+
+    }
+
 }
